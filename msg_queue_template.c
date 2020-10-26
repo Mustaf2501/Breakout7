@@ -1,10 +1,11 @@
 /*
 * Recitation Section Number:
-* Breakout Number:
-* Member Name (X500)
-* Member Name (X500)
-* Member Name (X500)
-* Member Name (X500)
+* Breakout Number: 7 
+
+* Mustaf Ahmed (ahmed719)
+* Chase P Hanson (hans6094)
+* Eric Schloss (schlo210)
+* Darnell Otterson (otter136)
 */
 
 #include <stdio.h>
@@ -13,6 +14,7 @@
 #include <zconf.h>
 #include <string.h>
 #include <stdlib.h>
+#include <sys/wait.h>
 
 #define PERM 0666
 #define MSGSIZE 100
@@ -34,18 +36,20 @@ int main(void) {
     key = ftok("recitation", 4061);
 
     // creates a message queue
+    msgid = msgget(key, 0666|IPC_CREAT); 
 
 
 
     // sender child process
     pid1 = fork();
+    
     if (pid1 == 0) {
         for (int i = 0; i < NCHILD; i++) {
             msg.mtype = 111;
             memset(msg.mtext, '\0', MSGSIZE);
             sprintf(msg.mtext, "Hello child %d", i);
             // send message to other child processes
-
+            msgsnd(msgid, (void *)&msg, sizeof(msg.mtext), 0);
 
 
             // display the message
@@ -57,6 +61,7 @@ int main(void) {
             memset(msg.mtext, '\0', MSGSIZE);
             sprintf(msg.mtext, "Message %d", i);
             // send message to other child processes
+            msgsnd(msgid, (void *)&msg, sizeof(msg.mtext), 0);
 
 
 
@@ -69,6 +74,7 @@ int main(void) {
             memset(msg.mtext, '\0', MSGSIZE);
             sprintf(msg.mtext, "Bye %d", i);
             // send message to other child processes
+            msgsnd(msgid, (void *)&msg, sizeof(msg.mtext), 0);
 
 
 
@@ -86,9 +92,7 @@ int main(void) {
     for (int j = 0; j < NCHILD; j++) {
         if ((pid2 = fork()) == 0) {
             // receive message
-
-
-
+            msgrcv(msgid, (void*)&msg, sizeof(msg.mtext), 0, 0);
             // display the message
             printf("[%d] Data received is : %s \n", j, msg.mtext);
 
@@ -102,7 +106,7 @@ int main(void) {
     while (wait(NULL) > 0);
 
     // to destroy the message queue
-
+    msgctl(msgid, IPC_RMID,0);
 
 
     return 0;

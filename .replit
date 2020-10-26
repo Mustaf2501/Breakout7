@@ -1,0 +1,2 @@
+language = "bash"
+run = "gcc msg_queue_template.c; ./a.out"
